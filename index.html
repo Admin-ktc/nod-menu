@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NOD Menu</title>
+<meta name="theme-color" content="#4F1325">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=DM+Sans:wght@400;500;700&display=swap">
+<style>
+:root{--cream:#F4EDD8;--maroon:#4F1325;--pink:#E5194D;--ink:#2b1519;--muted:#6d5357;--line:#e2d7bd}
+*{box-sizing:border-box}
+html{scroll-padding-top:170px}
+body{margin:0;background:var(--cream);color:var(--ink);font-family:'DM Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+header{position:sticky;top:0;z-index:5;background:var(--maroon);color:var(--cream)}
+.top{max-width:720px;margin:0 auto;padding:14px 16px 10px;display:flex;align-items:center;gap:12px}
+.logo{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:30px;letter-spacing:-1px;line-height:1}
+.logo span{color:#FF6B8B}
+.tabs{display:flex;gap:6px;margin-left:auto}
+.tabs button{font:inherit;font-weight:700;font-size:14px;border:1.5px solid var(--cream);background:transparent;color:var(--cream);border-radius:20px;padding:8px 16px;min-height:40px;cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--cream);color:var(--maroon)}
+.tools{max-width:720px;margin:0 auto;padding:0 16px 10px;display:flex;gap:8px}
+.tools input{flex:1;min-width:0;font:inherit;font-size:15px;border:0;border-radius:10px;padding:10px 12px;background:#fff;color:var(--ink)}
+.veg{display:flex;align-items:center;gap:6px;font-weight:700;font-size:13px;white-space:nowrap;cursor:pointer;padding:0 4px}
+.veg input{width:20px;height:20px;accent-color:#1d7a3c}
+nav{background:var(--cream);border-bottom:1px solid var(--line)}
+.chips{max-width:720px;margin:0 auto;display:flex;gap:8px;overflow-x:auto;padding:10px 16px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chips a{flex:none;text-decoration:none;color:var(--maroon);font-weight:700;font-size:13px;border:1.5px solid var(--maroon);border-radius:18px;padding:7px 13px}
+.chips a.on{background:var(--maroon);color:var(--cream)}
+main{max-width:720px;margin:0 auto;padding:8px 16px 40px}
+section{padding-top:22px}
+h2{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:30px;line-height:1.05;margin:0 0 4px;color:var(--pink);letter-spacing:-0.5px}
+.note{font-size:13px;color:var(--muted);margin:0 0 6px}
+.item{display:flex;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:0}
+.nm{font-weight:700;font-size:16px;line-height:1.3}
+.ds{font-size:13.5px;color:var(--muted);line-height:1.4;margin-top:3px}
+.pr{font-weight:700;font-size:16px;white-space:nowrap}
+.sub .nm{font-weight:500;font-size:15px;padding-left:12px}
+.v,.nv{display:inline-block;width:12px;height:12px;border:1.5px solid #1d7a3c;background:#fff;margin-left:6px;position:relative;vertical-align:-1px}
+.nv{border-color:#c62828}
+.v::after,.nv::after{content:"";position:absolute;inset:2.5px;border-radius:50%;background:#1d7a3c}
+.nv::after{background:#c62828}
+.tag{display:inline-block;font-size:10px;font-weight:700;line-height:1;padding:3px 6px;border-radius:9px;margin-left:5px;vertical-align:2px;color:#fff;background:#1d7a3c}
+.tag.vg{background:#3f7f22}.tag.eg{background:#b84f0e}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;font-weight:700;color:var(--muted);margin-top:28px;padding-top:16px;border-top:1px solid var(--line)}
+.empty{padding:40px 0;text-align:center;color:var(--muted)}
+footer{text-align:center;font-size:12px;color:var(--muted);padding:0 16px 32px}
+</style>
+</head>
+<body>
+<header>
+<div class="top">
+<div class="logo">nod<span>.</span></div>
+<div class="tabs" role="group" aria-label="Menu">
+<button type="button" data-tab="food" aria-pressed="true">Food</button>
+<button type="button" data-tab="drinks" aria-pressed="false">Drinks</button>
+</div>
+</div>
+<div class="tools">
+<label class="sr" style="position:absolute;left:-9999px" for="q">Search menu</label>
+<input id="q" type="search" placeholder="Search dishes…" autocomplete="off">
+<label class="veg"><input id="vegOnly" type="checkbox"> Veg only</label>
+</div>
+<nav><div class="chips" id="chips"></div></nav>
+</header>
+<main id="menu"></main>
+<footer>All prices in ₹ · Taxes extra as applicable · Please inform your server of any allergies</footer>
+
+<script>
+/* =========================================================
+   MENU DATA — prices aur items yahin badlo.
+   Har item: [ "Naam", price, "description", "tags" ]
+   tags: v = veg, nv = non veg, eg = contains egg,
+         gf = gluten free, vg = vegan, sub = choice wali line
+   ========================================================= */
+const MENU = {
+food: [
+{ name:"Healthy Bowls", items:[
+["Acai Bowl",745,"cocoa, banana, mixed seeds, acai powder","v gf"],
+["Berry Smoothie Bowl",495,"wild berries, brown butter granola, chia seeds, toasted coconut","v gf"],
+["Overnight Oats",475,"rolled oats, Greek yoghurt, maple syrup, chopped fresh fruits, almonds","v gf"],
+["Choco-nana",475,"banana, choco chips, coffee, honey comb, protein powder","v gf"],
+["Go Tropical",445,"pineapple, papaya, banana, coconut milk, ginger honey, fresh figs, citrus segments","v gf vg"],
+["Lean Green",595,"kale, avocado & green apple, oat milk, toasted almond flakes & sunflower seeds","v gf vg"]]},
+{ name:"All Day Brekkie", items:[
+["Jumbo Rosti — Guac, jalapeño & corn",425,"","v gf"],
+["Jumbo Rosti — Wild mushrooms & leeks",425,"","v gf"],
+["Jumbo Rosti — Baked beans & salsa",425,"","v gf"],
+["Jumbo Rosti — Chipotle & smoked chicken",495,"","nv gf"],
+["Creamed Spinach & Sundried Tomato Crepes",425,"fresh basil","v"],
+["Ratatouille & Mozzarella Crepes",425,"arugula salad","v"],
+["Portobello Benedict",425,"portobello mushroom, arugula, poached egg, chipotle hollandaise, marinara sauce","eg gf"],
+["NOD Benny","","English muffin, tomato jam, poached egg, paprika hollandaise — choice of:","eg"],
+["Smoked salmon",625,"","sub nv"],
+["Prosciutto",625,"","sub nv"],
+["Creamy shrimps",625,"","sub nv"],
+["Apple wood smoked maple bacon",585,"","sub nv"],
+["Wilted spinach",525,"","sub eg"],
+["Swiss Cheese & All Veggie Omelet",385,"","eg"],
+["Egg White Soufflé Omelet",425,"shrooms & spinach","eg"],
+["Turkish Eggs",445,"poached eggs, crisp chili, whipped feta & dill yoghurt, sourdough toast","eg"],
+["Shakshuka",475,"spiced tomato sauce, peppers, onions, tahina, baked egg, Laffa bread","eg"],
+["Country Ham & Sunny Side Up Crepes",475,"","nv"],
+["Build Your Breakfast Platter",695,"with grilled tomato, house salad & herbed wedges. Bread: sourdough, multigrain, English muffin, French baguette · Egg: fried, sunny side up, poached, scrambled, omelet · Protein: smoked salmon, bacon, frankfurters, ham · Sides: smashed avocado, baked beans, sautéed spinach, garlic wilted green beans, sautéed mushrooms",""]]},
+{ name:"Pancakes & French Toast", items:[
+["Tiramisu French Toast",565,"",""],
+["Crème Brûlée French Toast",565,"vanilla bean custard, caramelized sugar, fresh berries, whipped cream",""],
+["Baklava French Toast",565,"candied walnut syrup, cinnamon phyllo crumble, honey yoghurt drizzle",""],
+["Nutella French Toast",565,"with strawberries & banana",""],
+["Coco de Leche Pancakes",525,"coconut caramel sauce, toasted coconut shaves",""],
+["PB&J",525,"",""],
+["The Elvis Pancake",545,"traditional flapjacks with bananas, peanut butter, bacon chips and milk crumbs","nv"],
+["Apple Crumble Pancakes",525,"salted caramel, whipped cream",""],
+["High Protein Gluten Free Pancakes",545,"egg whites, oatmeal, banana, coconut sugar","eg gf"]]},
+{ name:"Open Toasts", items:[
+["Avocado & Mushrooms",485,"sourdough, smashed avo, grilled mushrooms","v"],
+["Brie & Strawberries",485,"balsamic roasted strawberries, brie, wild berry compote","v"],
+["Grilled Figs & Goat Cheese",485,"mustard micro greens","v"],
+["Burst Cherry Tomatoes & Burrata",485,"pinenut pesto, Modena balsamic","v"],
+["Smashin' Avo",525,"pickled red onion, crispy oil chili, crisp sunny egg, feta","eg"],
+["Truffle Scrambled Eggs & Bacon",525,"","nv"],
+["Grilled Peach & Prosciutto",565,"aged balsamic, arugula, toasted pistachios","nv"]]},
+{ name:"Burgers & Sandwiches", note:"Served with hand cut fries and house salad", items:[
+["Shroom Burger",595,"oats & wild mushroom patty, sesame bun, house ground mustard, caramelized onions","v"],
+["Grilled Cheese Melt",595,"Swiss cheese, gherkins, deli mustard","v"],
+["Cucumber, Pickles & Cream Cheese Bagel",525,"","v"],
+["Hummus & Roasted Pepper Bagel",525,"","v"],
+["OG Egg Sando",545,"chopped egg, mustard mayo, fresh chives, cracked pepper","eg"],
+["Chicken & Waffle",695,"Carolina style fried chicken, hot sauce, pickles, maple drizzle","nv"],
+["Blackened Chicken B.L.A.T",725,"bacon, lettuce, avocado, tomato, chipotle on brioche bun","nv"],
+["In Da Club",745,"sliced chicken, smoked bacon, fried egg, mustard mayo, lettuce, tomato","nv"],
+["10 oz Burger",795,"melted American cheese, frazzled onion, bacon, pickles","nv"],
+["Garden Club",645,"grilled cottage cheese, sliced avo, mustard mayo","v"],
+["Cubano",845,"pastrami, Swiss cheese, sliced gherkins, deli mustard","nv"],
+["Chicken / Pork Hot Dogs",545,"American mustard, house special sauce, pickled cabbage","nv"],
+["Smoked Salmon Bagel",695,"dill cream cheese, capers, pickled shallots","nv"]]},
+{ name:"Wood Fired Pizzas", items:[
+["Tomato & Mozzarella",795,"","v"],
+["Mushroom & Truffle",845,"","v"],
+["Four Cheese & Roasted Garlic",845,"","v"],
+["Ortolano",845,"zucchini, broccoli and onions","v"],
+["Smoked Chicken & Pickled Chili",895,"","nv"],
+["Fig & Prosciutto",995,"","nv"],
+["Pepperoni & Parmesan",995,"","nv"]]},
+{ name:"Wraps", items:[
+["Chicken Tortilla Wrap",595,"Mexican spiced chicken, cilantro pesto, charred onion, guacamole, tomato, jalapeño, cheese","nv"],
+["Cottage Cheese Wrap",595,"spinach tortilla bread, cilantro pesto, grilled cottage cheese, sautéed bell peppers, tomato, lettuce, guacamole, jalapeño","v"]]},
+{ name:"Salads & Bowls", note:"Add on: Shrimp 120 · Bacon 100 · Chicken 80", items:[
+["Kale & Quinoa Salad",625,"red grapes, citrus segments, toasted sunflower seeds, flaked parmesan, maple balsamic dressing","v gf"],
+["Poached Anjou Pear, Baby Beets & Goat Cheese Salad",585,"baby arugula, candied walnuts, apple cider-grain mustard dressing","v gf"],
+["NOD Caesar Salad",585,"romaine lettuce, torn croutons, Caesar dressing",""],
+["Burrata, Peaches",625,"grilled figs, hazelnuts, baby leaves, roasted cherry tomatoes, citrus dressing, walnut pesto","v"],
+["Earth Bowl",645,"kale, roasted sweet potatoes, cauliflower, cashew cheese, macerated carrots, toasted pumpkin seeds, avocado, lime vinaigrette","v gf vg"],
+["Shrimp Tostada Salad",745,"avocado mousse, sour cream, olives & greens","nv"]]},
+{ name:"Soups", items:[
+["Tomato & Smoked Chili Soup",325,"garlic toastie","v"],
+["Broccoli & Burnt Garlic Soup",425,"almonds, feta toast","v"],
+["Soup of the Day",395,"chef's special — check with your server",""]]},
+{ name:"Small Plates", items:[
+["Sweet Potato Fries",425,"chipotle aioli","v gf vg"],
+["Hand Pounded Guac",525,"raw banana chips, toasted sunflower seeds","v gf vg"],
+["NOD Nachos",525,"refried beans, cotija cheese, pickled chilies, tomato olive salsa","v"],
+["Edamame Hummus & Falafel",565,"garlic edamame, marinated olives, herb oil","v gf vg"],
+["Corn Ribs",525,"buttermilk ranch, chili lime dust","v gf"],
+["Pulled Jack Tacos",525,"chili relish, shallots","v"],
+["Truffle Parmesan Fries",585,"black olive tapenade","v gf"],
+["Chipotle Chicken Tacos",585,"soft shell, house salsa","nv"],
+["Campfire Wings",695,"bbq sauce, spicy ranch","nv gf"],
+["Nashville Crispy Chicken & Fries",695,"house fermented hot sauce, dill pickles","nv"],
+["Bacon Jalapeño Croquettes",695,"aged cheddar, charred avocado purée","nv"],
+["Fritto Misto",795,"crusted shrimps & calamari, lime aioli, pickled banana peppers","nv"],
+["Skillet Prawns",795,"chili garlic and white wine sauce, dipping bread","nv"],
+["Molten Cheese Ball",425,"cheese stuffed potato ball coated with bread crumbs, paprika mayo","v"]]},
+{ name:"Pastas & Risottos", items:[
+["Red Pepper & Smoked Cheese Mac & Cheese",565,"toasted crumbs","v"],
+["Rigatoni Tomato Vodka Sauce",585,"fresh burrata, basil oil","v"],
+["Saffron Tortellini",625,"truffle & cream cheese, parmesan & pink peppercorn fondue, confit garlic","v"],
+["Sausage & Rigatoni",795,"red wine & sausage ragout, mushrooms, San Marzano tomatoes","nv"],
+["Spaghetti Lamb Bolognaise",795,"roasted shallots","nv"],
+["Orecchiette Carbonara",825,"","nv"],
+["Chicken Piccata Linguini, Limone",895,"","nv"],
+["All Meat AOP",995,"bacon, shrimps, chicken","nv"],
+["Forest Mushroom Risotto",895,"parmesan chips","v"],
+["Asparagus Risotto","","arborio rice, asparagus, white wine, parmesan, hazelnut, parmesan tuile","v"],
+["Pasta Your Way",565,"Pasta: spaghetti, orecchiette, penne · Sauce: pomodoro, alfredo, basil pesto, AOP · Add ons: veggies, chicken, bacon, shrimps, sundried tomatoes, olives",""]]},
+{ name:"Main Plates & Shareables", items:[
+["Mushroom & Leeks Pot Pie",645,"","v"],
+["Burrito Bowl",645,"refried beans, guac, sour cream, Mexican rice, buttermilk ranch","v"],
+["Baked Brie",695,"phyllo baked brie, Dijon onion marmalade, truffle honey, arugula & toasted walnuts","v"],
+["Bangers & Mash",725,"Italian sausage, grain mustard, beer poached onions, creamy mash","nv"],
+["Biscuits & Gravy",745,"buttermilk biscuits, crumbled sausage, sage & bacon gravy","nv"],
+["Confit Chicken Leg",895,"whipped potatoes, pepper sauce, sautéed mushrooms & spinach","nv"],
+["Fire Roasted Brick Chicken",895,"mustard mash, charred broccoli","nv"],
+["Pan Seared Chicken Roulade",895,"burnt garlic mash, veggies, pan jus","nv"],
+["Classic Grilled Chicken",895,"grilled chicken breast, herb rice, charred veggies — choice of peri peri, bbq, mushroom white wine sauce or black pepper jus","nv"],
+["Grilled Lamb Chops",1995,"pumpkin purée, roasted root veggies, pan jus","nv"],
+["Fish n Chips",1095,"beer battered, mushy peas, hand cut fries, malt vinegar","nv"],
+["Grilled Fish, Quinoa Salad",1095,"charred broccoli & olives, spicy Veracruz style sauce","nv"],
+["Almond Crusted Salmon",1995,"seasonal greens, citrus sauce, baked cauliflower purée","nv"]]},
+{ name:"Sides", items:[
+["Onion Rings",385,"","v"],
+["Garlic Bread",325,"","v"],
+["Truffle Mash",325,"","v"],
+["Pork Frankfurters",365,"","nv"],
+["Bacon Rashers",345,"","nv"]]},
+{ name:"NOD House Dips", note:"with balloon bread", items:[
+["Pesto & Burrata",365,"","v"],
+["Dill Yoghurt with Garlic Chips",365,"","v"],
+["Red Pepper & Walnuts",365,"","v"],
+["Truffle & Artichoke",385,"","v"],
+["Whipped Mascarpone & Ham",385,"","nv"]]},
+{ name:"Desserts", items:[
+["Sea Salt Skillet Cookie",565,"Belgian choco chip pan cookie, vanilla ice cream, burnt marshmallows","eg"],
+["Berry Forest Mousse",585,"bed of chocolate, fresh cherry","v gf"],
+["Kaffir Lime Panna Cotta",545,"pineapple & pink peppercorn marmalade","v gf"],
+["Lemon Cremeux",545,"lemon jam, sponge","eg gf"],
+["Tiramisu",565,"","eg"],
+["Chocolate & Pistachio Kunafa Tartlets",565,"","v"],
+["Apple & Pecan Pie",545,"vanilla crumble, cinnamon anglaise","v"]]}
+],
+drinks: [
+{ name:"Espresso Bar — Hot", items:[
+["Espresso (Single / Double)",210,"",""],["Americano",240,"",""],["Cappuccino",265,"",""],["Café Latte",285,"",""],["Cortado",265,"",""],["Flat White",285,"",""],["Macchiato",230,"",""],["Piccolo",265,"",""],["Café Mocha",325,"",""],["Hot Spanish Latte",300,"",""],["South Indian Filter Coffee",265,"",""]]},
+{ name:"Espresso Bar — Iced", items:[
+["Espresso on Ice",225,"",""],["Americano",250,"",""],["Coffee Lemonade",295,"",""],["Cranberry Coffee",225,"",""],["Espresso Tonic",325,"",""],["Iced Cappuccino",310,"",""],["Cold Spanish Latte",320,"",""],["Iced Latte",320,"",""],["Vietnamese Cold Brew",320,"",""],["Iced Mocha",340,"",""]]},
+{ name:"Coffee Sutra × NOD Specials", items:[
+["Spiced Cappuccino",300,"",""],["Zesty Orange Iced Coffee",320,"",""],["Cold Foam Cold Brew",310,"mango / peach / passionfruit",""],["Deconstructed Iced Coffee",360,"",""]]},
+{ name:"Cold Brews", items:[
+["Cold Brew Number 2",300,"whisky barrel-aged",""],["Cold Brew Number 3",300,"thermal shock",""]]},
+{ name:"Manual Brews", items:[
+["French Press (Hot)",325,"",""],["Pour Over — V60 / Chemex / Gabi (Hot)",325,"",""],["AeroPress (Hot)",325,"",""],["Siphon (Hot)",325,"",""],["Pour Over — V60 / Chemex / Gabi (Iced)",340,"",""],["AeroPress (Iced)",340,"",""]]},
+{ name:"Affogato", items:[
+["Vanilla",360,"",""],["Salted Caramel",360,"",""],["Chocolate",390,"",""]]},
+{ name:"Frappe", note:"Ice cream blended", items:[
+["Classic Frappe",360,"",""],["Caramel Frappe",390,"",""],["Oreo Frappe",390,"",""],["Pistachio Frappe",410,"",""]]},
+{ name:"Extra Shot & Add Ons", items:[
+["House Blend Shot",60,"",""],["International Shot",150,"",""],["Decaffeinated Shot",120,"",""],["Flavors",85,"hazelnut, Irish, vanilla, caramel, cinnamon, Biscoff, pistachio",""],["Alternative Milk",120,"oat, almond, soya, lactose-free",""]]},
+{ name:"Matcha", note:"Hot / Iced", items:[
+["Oat Milk Matcha Latte",410,"",""],["Strawberry Matcha Cold Foam",410,"",""],["Matcha Frappe",410,"",""],["Coconut Matcha Cloud",410,"",""],["Mango Matcha",410,"",""],["Yuzu Matcha",410,"",""]]},
+{ name:"Fresh Juices", items:[
+["Cucumber, Pineapple, Celery, Apple & Mint",300,"",""],["Tropical",300,"orange, watermelon, pineapple",""],["Immunity",300,"orange, carrot, ginger, turmeric",""],["ABC",300,"apple, beetroot, carrot",""]]},
+{ name:"Smoothies", note:"Add ons: Protein (Whole Truth) · Moringa powder · Collagen shot", items:[
+["Avocado Smoothie",410,"",""],["Almond & Date Smoothie",435,"",""],["Mixed Berry Smoothie",470,"",""],["Peanut Butter Espresso Smoothie",435,"",""],["Ocean Elixir Smoothie",470,"",""],["Mulberry Smoothie",470,"",""]]},
+{ name:"Shakes & Coolers", items:[
+["Belgian Chocolate Shake",435,"",""],["Blueberry Shake",380,"",""],["Biscoff Shake",435,"",""],["Orange Mojito",360,"",""],["Watermelon Lemonade",360,"",""],["Strawberry Margarita Cooler",360,"",""],["Iced Tea (Lemon / Peach)",360,"",""],["Fresh Lime",360,"",""],["Lady Lychee",250,"",""]]},
+{ name:"Kombucha", note:"Ask for availability of flavors", items:[
+["Peach / Coffee Orange / Apple Cinnamon",325,"",""]]},
+{ name:"Teas & Hot Chocolate", items:[
+["Chamomile",220,"",""],["English Breakfast",220,"",""],["Honey Lemon & Ginger",220,"",""],["Green Tea",220,"",""],["Hot Chocolate",380,"",""]]},
+{ name:"Cold Beverages", items:[
+["Coke / Sprite",180,"",""],["Red Bull",220,"",""],["Sepoy & Co.",180,"",""]]}
+]
+};
+/* ============ MENU DATA KHATAM — neeche code mat chhedna ============ */
+
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const slug=s=>s.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+let tab="food";
+const $=id=>document.getElementById(id);
+
+function marks(t){
+  let h="";
+  if(t.includes("nv"))h+='<i class="nv" aria-label="Non veg"></i>';
+  else if(/\bv\b/.test(t))h+='<i class="v" aria-label="Veg"></i>';
+  if(/\beg\b/.test(t))h+='<span class="tag eg">EGG</span>';
+  if(/\bgf\b/.test(t))h+='<span class="tag">GF</span>';
+  if(/\bvg\b/.test(t))h+='<span class="tag vg">VEGAN</span>';
+  return h;
+}
+function render(){
+  const q=$("q").value.trim().toLowerCase();
+  const vegOnly=$("vegOnly").checked;
+  const cats=MENU[tab];
+  let html="",chips="";
+  cats.forEach(c=>{
+    const items=c.items.filter(([n,p,d,t])=>{
+      if(vegOnly&&(/\bnv\b/.test(t)||/\beg\b/.test(t)))return false;
+      if(q&&!(n+" "+d).toLowerCase().includes(q))return false;
+      return true;
+    });
+    if(!items.length)return;
+    const id=slug(c.name);
+    chips+=`<a href="#${id}">${esc(c.name)}</a>`;
+    html+=`<section id="${id}"><h2>${esc(c.name)}</h2>${c.note?`<p class="note">${esc(c.note)}</p>`:""}`;
+    items.forEach(([n,p,d,t])=>{
+      html+=`<div class="item${/\bsub\b/.test(t)?" sub":""}"><div><div class="nm">${/\bsub\b/.test(t)?"• ":""}${esc(n)}${marks(t)}</div>${d?`<div class="ds">${esc(d)}</div>`:""}</div><div class="pr">${p!==""?"₹"+p:""}</div></div>`;
+    });
+    html+="</section>";
+  });
+  if(!html)html='<p class="empty">Kuch nahi mila — search badal ke dekhein.</p>';
+  if(tab==="food")html+='<div class="legend"><span><i class="v"></i> Veg</span><span><i class="nv"></i> Non veg</span><span><span class="tag eg">EGG</span> Contains egg</span><span><span class="tag">GF</span> Gluten free</span><span><span class="tag vg">VEGAN</span> Vegan</span></div>';
+  $("menu").innerHTML=html;
+  $("chips").innerHTML=chips;
+  $("vegOnly").parentElement.style.display=tab==="food"?"":"none";
+  spy();
+}
+function spy(){
+  const secs=[...document.querySelectorAll("section")];
+  let cur=secs[0];
+  secs.forEach(s=>{if(s.getBoundingClientRect().top<190)cur=s;});
+  document.querySelectorAll(".chips a").forEach(a=>{
+    const on=cur&&a.getAttribute("href")==="#"+cur.id;
+    a.classList.toggle("on",on);
+    if(on)a.scrollIntoView({block:"nearest",inline:"center"});
+  });
+}
+document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>{
+  tab=b.dataset.tab;
+  document.querySelectorAll(".tabs button").forEach(x=>x.setAttribute("aria-pressed",x===b));
+  window.scrollTo(0,0);render();
+}));
+$("q").addEventListener("input",render);
+$("vegOnly").addEventListener("change",render);
+let t;window.addEventListener("scroll",()=>{clearTimeout(t);t=setTimeout(spy,60);},{passive:true});
+render();
+</script>
+</body>
+</html>
